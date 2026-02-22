@@ -3,10 +3,13 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 COPY package*.json ./
 COPY prisma ./prisma/
+# FORCE DEVELOPMENT MODE FOR INSTALLING DEV DEPENDENCIES (like @nestjs/cli)
+ENV NODE_ENV=development
 RUN npm ci
 
 COPY . .
 RUN npx prisma generate
+ENV NODE_ENV=production
 RUN npm run build
 
 FROM node:20-alpine AS runner
