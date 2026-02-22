@@ -14,6 +14,8 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { APP_GUARD } from '@nestjs/core';
+import { EnclosuresModule } from './enclosures/enclosures.module';
+import { MedicalRecordsModule } from './medical-records/medical-records.module';
 
 @Module({
   imports: [
@@ -33,7 +35,9 @@ import { APP_GUARD } from '@nestjs/core';
     PublicModule,
     AiModule,
     MediaModule,
-    CropsModule
+    CropsModule,
+    EnclosuresModule,
+    MedicalRecordsModule
   ],
   controllers: [AppController],
   providers: [
