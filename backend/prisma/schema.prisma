@@ -1,0 +1,234 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== IDENTITY & ACCESS MANAGEMENT ====================
+
+model Tenant {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  isActive  Boolean  @default(true)
+  
+  // Relations
+  users        User[]
+  apiKeys      ApiKey[]
+  activityLogs ActivityLog[]
+  livestocks   Livestock[]
+  cropPhases   CropPhase[]
+  transactions Transaction[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("tenants")
+}
+
+model User {
+  id       String  @id @default(uuid())
+  tenantId String?
+  tenant   Tenant? @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  email    String @unique
+  username String @unique
+  password String
+  name     String
+  
+  // Security Hardening
+  isActive             Boolean   @default(true)
+  lastLoginAt          DateTime?
+  suspiciousLoginCount Int       @default(0)
+
+  // Token management
+  refreshTokens RefreshToken[]
+
+  // RBAC
+  userRoles UserRole[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@map("users")
+}
+
+model RefreshToken {
+  id          String   @id @default(uuid())
+  token       String   @unique
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  isRevoked   Boolean  @default(false)
+  deviceInfo  String?
+  ipAddress   String?
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+// ==== RBAC ====
+
+model Role {
+  id          String   @id @default(uuid())
+  name        String   @unique // e.g., SUPERADMIN, TENANT_OWNER, STAFF
+  description String?
+
+  permissions RolePermission[]
+  users       UserRole[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String   @id @default(uuid())
+  action      String   @unique // e.g., 'livestock.read', 'finance.approve'
+  description String?
+
+  roles       RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model UserRole {
+  userId String
+  roleId String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@map("user_roles")
+}
+
+model ApiKey {
+  id        String   @id @default(uuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  name      String
+  keyHash   String   @unique
+  prefix    String   // First 8 chars
+  scopes    String?  // JSON array of granular permissions
+  expiresAt DateTime?
+  isActive  Boolean  @default(true)
+  lastUsed  DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([tenantId])
+  @@map("api_keys")
+}
+
+// ==================== CORE FARM SERVICE ====================
+
+model Livestock {
+  id          String   @id @default(uuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  name        String
+  species     String
+  breed       String
+  dob         DateTime
+
+  currentWeight Float
+  status        String
+
+  // Market
+  isForSale   Boolean @default(false)
+  salePrice   Decimal?
+  publicNotes String? @db.Text
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tenantId, id]) // Zero-Trust composite index
+  @@map("livestock")
+}
+
+model CropPhase {
+  id          String   @id @default(uuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  name        String   // Letuce, Tomato, etc.
+  phase       String   // Seeding, Vegetative, Flowering, Harvesting
+  plantedAt   DateTime
+  estHarvest  DateTime?
+  status      String   @default("ACTIVE") // ACTIVE, COMPLETED, FAILED
+
+  notes       String?  @db.Text
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tenantId, id])
+  @@map("crop_phases")
+}
+
+model Transaction {
+  id          String   @id @default(uuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  type        String   // SALE, PURCHASE
+  amount      Decimal
+  status      String   @default("PENDING") // PENDING, COMPLETED, CANCELLED
+  notes       String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tenantId, id]) // Zero-Trust composite index
+  @@map("transactions")
+}
+
+// ==================== OBSERVABILITY ====================
+
+model SystemLog {
+  id        String   @id @default(uuid())
+  level     String   // INFO, WARN, ERROR, CRITICAL
+  module    String   // AUTH, API_GATEWAY, TENANT_GUARD, AI_SERVICE
+  message   String   @db.Text
+  details   String?  @db.Text // JSON context
+  ipAddress String?
+  
+  createdAt DateTime @default(now())
+
+  @@map("system_logs")
+}
+
+model ActivityLog {
+  id         String   @id @default(uuid())
+  tenantId   String
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  userId     String?  // Optional for API key actions
+  action     String   // LOGIN, LIVESTOCK_CREATE, PAYMENT_APPROVE
+  entityType String?
+  entityId   String?
+  details    String?  @db.Text
+  ipAddress  String?
+
+  createdAt  DateTime @default(now())
+
+  @@index([tenantId])
+  @@map("activity_logs")
+}

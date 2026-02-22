@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  # 1. Database (PostgreSQL)
+  postgres:
+    image: postgres:15-alpine
+    container_name: pediavet_db
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: pediavet
+    volumes:
+      - pediavet_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d pediavet"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 2. Backend (NestJS API)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: pediavet_backend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/pediavet
+      - JWT_SECRET=super_secret_pediavet_key
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # 3. Frontend (Next.js)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: pediavet_frontend
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://localhost:3000
+    depends_on:
+      - backend
+
+volumes:
+  pediavet_pgdata:
