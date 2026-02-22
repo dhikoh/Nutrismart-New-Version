@@ -38,6 +38,20 @@ export class LivestockService {
                 });
             }
 
+            // 4. Record initial investment (HPP Expense)
+            if (createLivestockDto.acquisitionCost && createLivestockDto.acquisitionCost > 0) {
+                await tx.transaction.create({
+                    data: {
+                        tenantId,
+                        type: 'EXPENSE',
+                        category: 'ASSET_ACQUISITION',
+                        amount: createLivestockDto.acquisitionCost,
+                        notes: `Initial livestock acquisition: ${livestock.name}`,
+                        status: 'COMPLETED'
+                    }
+                });
+            }
+
             return livestock;
         });
     }

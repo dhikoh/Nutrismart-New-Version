@@ -46,6 +46,10 @@ export class CreateLivestockDto {
     salePrice?: number;
 
     @IsOptional()
+    @IsNumber()
+    acquisitionCost?: number;
+
+    @IsOptional()
     @IsString()
     publicNotes?: string;
 
