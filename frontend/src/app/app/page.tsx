@@ -5,6 +5,7 @@ import { NeuCard } from '@/components/ui/NeuCard';
 import { NeuStatCard } from '@/components/ui/NeuStatCard';
 import { PawPrint, Tractor, TrendingUp, Users } from 'lucide-react';
 import { api } from '@/lib/api';
+import { AiAssistant } from '@/components/ui/AiAssistant';
 
 export default function DashboardPage() {
     const [stats, setStats] = useState({
@@ -105,6 +106,9 @@ export default function DashboardPage() {
                     </div>
                 </NeuCard>
             </div>
+
+            {/* AI Assistant Module */}
+            <AiAssistant />
         </div>
     );
 }

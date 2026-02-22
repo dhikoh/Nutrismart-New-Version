@@ -1,4 +1,6 @@
 import { PrismaClient } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
+
 const prisma = new PrismaClient();
 
 async function main() {
@@ -74,6 +76,48 @@ async function main() {
                 });
             }
         }
+    }
+
+    // 4. Create Default Tenant & Owner for MVP Testing
+    console.log('Provisioning Default Tenant and Owner Account...');
+
+    const defaultTenant = await prisma.tenant.upsert({
+        where: { slug: 'modula-hq' },
+        update: {},
+        create: {
+            name: 'Modula HQ Farm',
+            slug: 'modula-hq',
+        }
+    });
+
+    const ownerRole = await prisma.role.findUnique({ where: { name: 'OWNER' } });
+    if (!ownerRole) throw new Error('OWNER role not found during seeding');
+
+    const hashedPassword = await bcrypt.hash('Pediavet@2026', 10);
+
+    // We use findFirst to check if user exists since we'll upsert via isolated fields
+    let superAdmin = await prisma.user.findUnique({
+        where: { email: 'admin@pediavet.com' }
+    });
+
+    if (!superAdmin) {
+        superAdmin = await prisma.user.create({
+            data: {
+                email: 'admin@pediavet.com',
+                username: 'superadmin',
+                password: hashedPassword,
+                name: 'System Administrator',
+                tenantId: defaultTenant.id,
+                userRoles: {
+                    create: {
+                        roleId: ownerRole.id
+                    }
+                }
+            }
+        });
+        console.log('✅ Created Default Admin (admin@pediavet.com / Pediavet@2026)');
+    } else {
+        console.log('ℹ️ Default Admin already exists.');
     }
 
     console.log('RBAC Seeding completed successfully!');
