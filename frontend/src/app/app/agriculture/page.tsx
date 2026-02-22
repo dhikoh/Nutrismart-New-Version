@@ -4,7 +4,7 @@ import React from 'react';
 import useSWR from 'swr';
 import { NeuCard } from '@/components/ui/NeuCard';
 import { NeuDataTable } from '@/components/ui/NeuDataTable';
-import { Plus, Leaf, MapMap } from 'lucide-react';
+import { Plus, Leaf, Map } from 'lucide-react';
 
 const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then(res => res.json());
 
@@ -14,18 +14,18 @@ export default function AgriculturePage() {
 
     // Columns for Land Parcels
     const parcelColumns = [
-        { header: 'Parcel Name', accessorKey: 'name' },
-        { header: 'Area Size', accessorKey: 'areaSize' },
-        { header: 'Soil Type', accessorKey: 'soilType' },
-        { header: 'Status', accessorKey: 'status' }
+        { header: 'Parcel Name', key: 'name' },
+        { header: 'Area Size', key: 'areaSize' },
+        { header: 'Soil Type', key: 'soilType' },
+        { header: 'Status', key: 'status' }
     ];
 
     // Columns for Crop Phases
     const cropColumns = [
-        { header: 'Phase Name', accessorKey: 'name' },
-        { header: 'Current Phase', accessorKey: 'phase' },
-        { header: 'Expected Yield', accessorKey: 'expectedYield' },
-        { header: 'Status', accessorKey: 'status' }
+        { header: 'Phase Name', key: 'name' },
+        { header: 'Current Phase', key: 'phase' },
+        { header: 'Expected Yield', key: 'expectedYield' },
+        { header: 'Status', key: 'status' }
     ];
 
     return (
@@ -52,16 +52,18 @@ export default function AgriculturePage() {
                 {/* Land Parcels Table */}
                 <NeuCard className="p-6">
                     <div className="flex items-center gap-2 mb-6 border-b pb-4">
-                        <MapMap className="w-6 h-6 text-gray-600" />
+                        <Map className="w-6 h-6 text-gray-600" />
                         <h2 className="text-xl font-bold text-gray-800">Land Parcels</h2>
                     </div>
                     {parcelsError ? (
                         <div className="text-red-500 font-medium">Failed to load Land Parcels.</div>
+                    ) : parcelsLoading ? (
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600 mx-auto"></div>
                     ) : (
                         <NeuDataTable
                             columns={parcelColumns}
                             data={parcels || []}
-                            isLoading={parcelsLoading}
+                            keyExtractor={(item: any) => item.id}
                         />
                     )}
                 </NeuCard>
@@ -74,11 +76,13 @@ export default function AgriculturePage() {
                     </div>
                     {cropsError ? (
                         <div className="text-red-500 font-medium">Failed to load Crop Phases.</div>
+                    ) : cropsLoading ? (
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600 mx-auto"></div>
                     ) : (
                         <NeuDataTable
                             columns={cropColumns}
                             data={crops || []}
-                            isLoading={cropsLoading}
+                            keyExtractor={(item: any) => item.id}
                         />
                     )}
                 </NeuCard>

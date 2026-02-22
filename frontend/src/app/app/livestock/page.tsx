@@ -3,13 +3,21 @@
 import React, { useState, useEffect } from 'react';
 import { NeuCard } from '@/components/ui/NeuCard';
 import { api } from '@/lib/api';
-import { PawPrint, DownloadCloud } from 'lucide-react';
+import { PawPrint, DownloadCloud, X } from 'lucide-react';
 import { NeuDataTable } from '@/components/ui/NeuDataTable';
+import { NeuFileUpload } from '@/components/ui/NeuFileUpload';
 
 export default function LivestockPage() {
     const [livestockList, setLivestockList] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
+    // Add Animal Form State
+    const [formData, setFormData] = useState({
+        name: '', species: '', breed: '', imageUrl: ''
+    });
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
         const fetchLivestock = async () => {
@@ -46,7 +54,32 @@ export default function LivestockPage() {
         }
     };
 
+    const handleAddAnimalSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+        setError('');
+        try {
+            await api.post('/api/internal/livestock', formData);
+            setIsAddModalOpen(false);
+            setFormData({ name: '', species: '', breed: '', imageUrl: '' });
+            // Refresh list
+            const response = await api.get('/api/internal/livestock');
+            setLivestockList(response.data);
+        } catch (err: any) {
+            console.error(err);
+            setError(err.response?.data?.message || 'Failed to add animal');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
     const columns = [
+        {
+            key: 'imageUrl', header: 'Photo', render: (row: any) => (
+                row.imageUrl ? <img src={`${process.env.NEXT_PUBLIC_API_URL}${row.imageUrl}`} alt="pet" className="w-10 h-10 rounded-full object-cover" />
+                    : <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center text-xs text-gray-500">No Img</div>
+            )
+        },
         { key: 'name', header: 'Name/Tag' },
         { key: 'species', header: 'Species' },
         { key: 'breed', header: 'Breed' },
@@ -76,7 +109,7 @@ export default function LivestockPage() {
                         <DownloadCloud className="w-5 h-5" />
                         Export
                     </button>
-                    <button className="neu-button px-6 py-3 rounded-xl font-bold text-[#00bfa5] hover:text-[#00cca8]">
+                    <button onClick={() => setIsAddModalOpen(true)} className="neu-button px-6 py-3 rounded-xl font-bold text-[#00bfa5] hover:text-[#00cca8]">
                         + Add Animal
                     </button>
                 </div>
@@ -100,6 +133,46 @@ export default function LivestockPage() {
                     emptyMessage="No livestock registered yet."
                 />
             )}
+
+            {/* Overlay Modal For Adding Animal */}
+            {isAddModalOpen && (
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                    <NeuCard className="w-full max-w-md p-6 relative">
+                        <button onClick={() => setIsAddModalOpen(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                            <X className="w-6 h-6" />
+                        </button>
+                        <h2 className="text-2xl font-bold text-gray-800 mb-6">Register Livestock</h2>
+
+                        <form onSubmit={handleAddAnimalSubmit} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-1">Name / Tag ID</label>
+                                <input required type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="neu-input w-full px-4 py-3 rounded-xl" placeholder="E.g., B-012" />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-1">Species</label>
+                                    <input required type="text" value={formData.species} onChange={e => setFormData({ ...formData, species: e.target.value })} className="neu-input w-full px-4 py-3 rounded-xl" placeholder="Cattle, Goat" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-1">Breed</label>
+                                    <input type="text" value={formData.breed} onChange={e => setFormData({ ...formData, breed: e.target.value })} className="neu-input w-full px-4 py-3 rounded-xl" placeholder="Angus" />
+                                </div>
+                            </div>
+
+                            {/* MEDIA FILE UPLOAD INJECTION */}
+                            <NeuFileUpload
+                                label="Upload Profile Photo"
+                                onUploadSuccess={(url) => setFormData({ ...formData, imageUrl: url })}
+                            />
+
+                            <button type="submit" disabled={isSubmitting} className="w-full neu-button py-3 pt-4 rounded-xl font-bold text-[#00bfa5] disabled:opacity-50">
+                                {isSubmitting ? 'Saving...' : 'Save Record'}
+                            </button>
+                        </form>
+                    </NeuCard>
+                </div>
+            )}
+
         </div>
     );
 }
