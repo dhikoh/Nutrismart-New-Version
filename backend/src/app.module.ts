@@ -13,7 +13,8 @@ import { CropsModule } from './crops/crops.module';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { ActivityLogInterceptor } from './common/interceptors/activity-log.interceptor';
 import { EnclosuresModule } from './enclosures/enclosures.module';
 import { MedicalRecordsModule } from './medical-records/medical-records.module';
 import { NutritionCalculatorModule } from './nutrition-calculator/nutrition-calculator.module';
@@ -51,6 +52,10 @@ import { BillingModule } from './billing/billing.module';
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ActivityLogInterceptor,
     }
   ],
 })
