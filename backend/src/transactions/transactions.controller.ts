@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
 import { TransactionsService } from './transactions.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
@@ -21,8 +21,8 @@ export class TransactionsController {
 
     @Get()
     @RequirePermissions('finance.read')
-    findAll(@CurrentTenant() tenantId: string) {
-        return this.transactionsService.findAll(tenantId);
+    findAll(@CurrentTenant() tenantId: string, @Query('mode') mode?: string) {
+        return this.transactionsService.findAll(tenantId, mode);
     }
 
     @Get(':id')

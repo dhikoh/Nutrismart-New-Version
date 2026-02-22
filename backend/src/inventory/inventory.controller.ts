@@ -18,8 +18,8 @@ export class InventoryController {
 
     @RequirePermissions('transaction.read')
     @Get()
-    findAllItems(@CurrentTenant() tenantId: string, @Query('type') type?: string) {
-        return this.inventoryService.findAllItems(tenantId, type);
+    findAllItems(@CurrentTenant() tenantId: string, @Query('type') type?: string, @Query('mode') mode?: string) {
+        return this.inventoryService.findAllItems(tenantId, type, mode);
     }
 
     @RequirePermissions('transaction.read')

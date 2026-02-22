@@ -5,15 +5,17 @@ import { NeuCard } from '@/components/ui/NeuCard';
 import { api } from '@/lib/api';
 import { Wallet, Plus } from 'lucide-react';
 import { NeuDataTable } from '@/components/ui/NeuDataTable';
+import { useFarmMode } from '@/components/providers/FarmModeProvider';
 
 export default function FinancePage() {
+    const { mode } = useFarmMode();
     const [transactions, setTransactions] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         const fetchTransactions = async () => {
             try {
-                const res = await api.get('/api/internal/transactions');
+                const res = await api.get(`/api/internal/transactions?mode=${mode}`);
                 setTransactions(res.data);
             } catch (err) {
                 console.error("Failed to load transactions", err);
@@ -22,7 +24,7 @@ export default function FinancePage() {
             }
         };
         fetchTransactions();
-    }, []);
+    }, [mode]);
 
     const columns = [
         { key: 'createdAt', header: 'Date', render: (row: any) => new Date(row.createdAt).toLocaleDateString() },

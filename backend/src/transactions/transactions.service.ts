@@ -21,9 +21,17 @@ export class TransactionsService {
         });
     }
 
-    async findAll(tenantId: string) {
+    async findAll(tenantId: string, mode?: string) {
+        const whereClause: any = { tenantId };
+
+        if (mode === 'AGRICULTURE') {
+            whereClause.category = { in: ['SEED_COST', 'CROP_SALE', 'UNCATEGORIZED'] };
+        } else if (mode === 'LIVESTOCK') {
+            whereClause.category = { in: ['FEED_COST', 'MEDICAL_COST', 'LIVESTOCK_SALE', 'UNCATEGORIZED'] };
+        }
+
         return this.prisma.transaction.findMany({
-            where: { tenantId },
+            where: whereClause,
             orderBy: { createdAt: 'desc' },
         });
     }

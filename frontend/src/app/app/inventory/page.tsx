@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 import { Package, Plus, ClipboardList, Layers } from 'lucide-react';
+import { useFarmMode } from '@/components/providers/FarmModeProvider';
 
 interface InventoryItem {
     id: string;
@@ -15,13 +16,14 @@ interface InventoryItem {
 }
 
 export default function InventoryPage() {
+    const { mode } = useFarmMode();
     const [items, setItems] = useState<InventoryItem[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchItems = async () => {
             try {
-                const res = await api.get(`/api/internal/inventory`);
+                const res = await api.get(`/api/internal/inventory?mode=${mode}`);
                 if (res.data) {
                     setItems(res.data);
                 }
@@ -33,7 +35,7 @@ export default function InventoryPage() {
         };
 
         fetchItems();
-    }, []);
+    }, [mode]);
 
     return (
         <div className="space-y-6">

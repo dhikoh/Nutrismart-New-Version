@@ -14,10 +14,16 @@ export class InventoryService {
         });
     }
 
-    async findAllItems(tenantId: string, type?: string) {
+    async findAllItems(tenantId: string, type?: string, mode?: string) {
         const whereClause: any = { tenantId };
         if (type) {
             whereClause.type = type;
+        }
+
+        if (mode === 'AGRICULTURE') {
+            whereClause.category = { in: ['SEED', 'FERTILIZER', 'EQUIPMENT'] };
+        } else if (mode === 'LIVESTOCK') {
+            whereClause.category = { in: ['FEED', 'MEDICINE', 'EQUIPMENT'] };
         }
 
         return this.prisma.inventoryItem.findMany({
