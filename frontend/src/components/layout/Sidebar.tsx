@@ -12,7 +12,7 @@ import {
     LogOut,
     Tractor,
     PawPrint,
-    Wallet
+    Wallet,
     Leaf,
     ThermometerSun,
     Sprout
