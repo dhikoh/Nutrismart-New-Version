@@ -7,10 +7,10 @@ import { FileText, Plus, Receipt, Calendar, CreditCard } from 'lucide-react';
 interface Invoice {
     id: string;
     invoiceNumber: string;
-    clientName: string;
-    totalAmount: number;
+    customerName: string;
+    total: number;
     status: string;
-    date: string;
+    createdAt: string;
     type: string;
 }
 
@@ -21,7 +21,7 @@ export default function BillingPage() {
     useEffect(() => {
         const fetchInvoices = async () => {
             try {
-                const res = await api.get(`/api/internal/billing`);
+                const res = await api.get(`/api/internal/billing/invoices`);
                 if (res.data) {
                     setInvoices(res.data);
                 }
@@ -102,11 +102,11 @@ export default function BillingPage() {
                                             </div>
                                             <div>
                                                 <p className="font-bold text-gray-800">{inv.invoiceNumber}</p>
-                                                <p className="text-sm text-gray-500">{inv.clientName || 'Unknown Client'}</p>
+                                                <p className="text-sm text-gray-500">{inv.customerName || 'Unknown Client'}</p>
                                             </div>
                                         </div>
                                         <div className="text-right">
-                                            <p className="font-bold text-[#00bfa5]">Rp {Number(inv.totalAmount).toLocaleString()}</p>
+                                            <p className="font-bold text-[#00bfa5]">Rp {Number(inv.total).toLocaleString()}</p>
                                             <span className={`inline-block px-3 py-1 mt-1 text-xs font-semibold rounded-full ${inv.status === 'PAID' ? 'bg-green-100 text-green-700' :
                                                 inv.status === 'DRAFT' ? 'bg-gray-200 text-gray-600' :
                                                     'bg-yellow-100 text-yellow-700'

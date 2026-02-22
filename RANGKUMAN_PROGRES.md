@@ -20,6 +20,10 @@ Dokumen ini merangkum seluruh pekerjaan yang telah diselesaikan sejak awal pemba
 - [x] Fungsi Export Identitas Kandang (`Enclosures`) & Ternak (`Livestock`) dalam format CSV
 - [x] Sinkronisasi Atomik Transaksi Prisma antara perpindahan Ternak dan pergeseran Kapasitas Kandang (`currentLoad`)
 - [x] Persiapan Migrasi Skema Face 2: Nutrition, Billing, Inventory, dan Medical Record.
+- [x] Mengatasi error Build Node_Env `Exit Code 127` NestJS dengan mengubah dev environment di Dockerfile.
+- [x] Memperbaiki *Type Inference* TypeScript Export CSV (Enclosures & Livestock) dengan `@Type` explicit (*Exit Code 1* Coolify Build).
+- [x] **Audit Billing API & Frontend End-to-End**: Telah membaca kode `billing.service.ts` dan `billing.controller.ts`. Terdapat Endpoint pembuatan Invoice `createInvoice` yang mengeksekusi *Prisma Transaction* (`$transaction`) untuk membuat *Invoice*, membuat *Ledger/Transaction*, dan men-set status hewan (*Livestock*) menjadi terjual jika jenisnya *SALE*. Selanjutnya saya memvalidasi *Frontend*.
+- [x] Melakukan audit pada Modul Billing (Controller, Service, Prisma) beserta integrasinya di *Frontend* untuk memastikan tidak ada cacat integrasi sebelum melakukan pelaporan sesuai panduan pengguna.
 - [ ] Push skema Prisma Face 2 ke production server via SSH (Coolify)
 
 ### 2. Backend (NestJS API Layer)

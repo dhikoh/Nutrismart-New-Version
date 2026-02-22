@@ -38,6 +38,18 @@ export class MedicalRecordsService {
         });
     }
 
+    async findAll(tenantId: string) {
+        return this.prisma.medicalRecord.findMany({
+            where: { tenantId },
+            orderBy: { date: 'desc' },
+            include: {
+                livestock: {
+                    select: { name: true, species: true }
+                }
+            }
+        });
+    }
+
     async findAllByLivestock(tenantId: string, livestockId: string) {
         return this.prisma.medicalRecord.findMany({
             where: { tenantId, livestockId },

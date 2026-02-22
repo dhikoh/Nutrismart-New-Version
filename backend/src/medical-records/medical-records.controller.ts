@@ -17,6 +17,12 @@ export class MedicalRecordsController {
     }
 
     @RequirePermissions('livestock.read')
+    @Get()
+    findAll(@CurrentTenant() tenantId: string) {
+        return this.medicalRecordsService.findAll(tenantId);
+    }
+
+    @RequirePermissions('livestock.read')
     @Get('livestock/:livestockId')
     findAllByLivestock(
         @CurrentTenant() tenantId: string,
