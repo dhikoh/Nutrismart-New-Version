@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Res } from '@nestjs/common';
-import { Response } from 'express';
+import type { Response } from 'express';
 import { LivestockService } from './livestock.service';
 import { CreateLivestockDto } from './dto/create-livestock.dto';
 import { UpdateLivestockDto } from './dto/update-livestock.dto';
@@ -33,7 +33,7 @@ export class LivestockController {
 
         let csvString = 'ID,Name,Species,Breed,Current Weight (kg),Enclosure,ADG Updates Count,Status,Is For Sale,Acquisition Cost,Accumulated Medical Cost\n';
 
-        livestocks.forEach(l => {
+        livestocks.forEach((l: any) => {
             const enclosureName = l.enclosure ? l.enclosure.name : 'Unassigned';
             const weightUpdates = l.weightRecords ? l.weightRecords.length : 0;
             // Escape values safely for CSV
