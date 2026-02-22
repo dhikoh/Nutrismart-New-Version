@@ -1,14 +1,24 @@
-import { IsString, IsNumber, IsDate, IsNotEmpty, IsOptional, IsBoolean } from 'class-validator';
+import { IsString, IsNumber, IsDate, IsNotEmpty, IsOptional, IsBoolean, IsEnum } from 'class-validator';
 import { Type } from 'class-transformer';
+
+export enum LivestockSpecies {
+    BOVINE = 'BOVINE', // Sapi
+    OVINE = 'OVINE',   // Domba
+    CAPRINE = 'CAPRINE', // Kambing
+    POULTRY = 'POULTRY', // Unggas (Ayam/Bebek)
+    PORCINE = 'PORCINE', // Babi
+    EQUINE = 'EQUINE', // Kuda
+    AQUACULTURE = 'AQUACULTURE' // Ikan
+}
 
 export class CreateLivestockDto {
     @IsString()
     @IsNotEmpty()
     name: string;
 
-    @IsString()
+    @IsEnum(LivestockSpecies)
     @IsNotEmpty()
-    species: string;
+    species: LivestockSpecies;
 
     @IsString()
     @IsNotEmpty()
@@ -38,4 +48,8 @@ export class CreateLivestockDto {
     @IsOptional()
     @IsString()
     publicNotes?: string;
+
+    @IsOptional()
+    @IsString()
+    enclosureId?: string;
 }

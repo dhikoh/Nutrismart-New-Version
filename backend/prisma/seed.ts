@@ -120,7 +120,44 @@ async function main() {
         console.log('ℹ️ Default Admin already exists.');
     }
 
-    console.log('RBAC Seeding completed successfully!');
+    // 5. Build Master Nutrition Database (Global / No Tenant)
+    console.log('Seeding Master Nutrition Database (Feed Ingredients & NRC)...');
+
+    const masterFeeds = [
+        { name: 'Jagung Kuning (Corn)', dryMatter: 88, crudeProtein: 8.5, metabolizableEnergy: 3300, crudeFiber: 2.2, crudeFat: 3.8, ash: 1.5, calcium: 0.02, phosphorus: 0.28, pricePerKg: 6500 },
+        { name: 'Bungkil Kedelai (SBM)', dryMatter: 89, crudeProtein: 46.0, metabolizableEnergy: 2800, crudeFiber: 6.0, crudeFat: 1.5, ash: 6.0, calcium: 0.25, phosphorus: 0.60, pricePerKg: 10500 },
+        { name: 'Dedak Padi (Rice Bran)', dryMatter: 90, crudeProtein: 12.0, metabolizableEnergy: 2100, crudeFiber: 13.0, crudeFat: 12.0, ash: 11.0, calcium: 0.05, phosphorus: 1.50, pricePerKg: 3500 },
+        { name: 'Tepung Ikan (Fish Meal)', dryMatter: 92, crudeProtein: 55.0, metabolizableEnergy: 2800, crudeFiber: 1.0, crudeFat: 8.0, ash: 18.0, calcium: 5.0, phosphorus: 3.0, pricePerKg: 15000 },
+        { name: 'Bungkil Sawit (PKC)', dryMatter: 90, crudeProtein: 16.0, metabolizableEnergy: 2100, crudeFiber: 18.0, crudeFat: 8.0, ash: 4.5, calcium: 0.25, phosphorus: 0.55, pricePerKg: 2500 },
+        { name: 'Rumput Gajah (Napier)', dryMatter: 20, crudeProtein: 10.0, metabolizableEnergy: 1800, crudeFiber: 30.0, crudeFat: 2.0, ash: 10.0, calcium: 0.40, phosphorus: 0.20, pricePerKg: 500 }
+    ];
+
+    for (const feed of masterFeeds) {
+        // Find existing to avoid duplicates on re-seed
+        const exists = await prisma.feedIngredient.findFirst({ where: { name: feed.name, tenantId: null } });
+        if (!exists) {
+            await prisma.feedIngredient.create({ data: feed });
+        }
+    }
+
+    const nrcStandards = [
+        // Energy explicitly converted to Kcal/kg (e.g. 2.5 Mcal = 2500 Kcal)
+        { species: 'BOVINE', stage: 'GROWTH', weightRange: '200-300', reqDryMatter: 6.5, reqCrudeProtein: 13.0, reqEnergy: 2400, reqCalcium: 0.45, reqPhosphorus: 0.25 },
+        { species: 'BOVINE', stage: 'LACTATION', weightRange: '400-500', reqDryMatter: 14.5, reqCrudeProtein: 16.0, reqEnergy: 2600, reqCalcium: 0.60, reqPhosphorus: 0.35 },
+        { species: 'CAPRINE', stage: 'GROWTH', weightRange: '20-30', reqDryMatter: 0.8, reqCrudeProtein: 14.0, reqEnergy: 2400, reqCalcium: 0.50, reqPhosphorus: 0.30 },
+        { species: 'POULTRY', stage: 'GROWTH', weightRange: '0.1-1.0', reqDryMatter: 0.0, reqCrudeProtein: 21.0, reqEnergy: 3100, reqCalcium: 1.0, reqPhosphorus: 0.45 },
+    ];
+
+    for (const std of nrcStandards) {
+        const exists = await prisma.nrcStandard.findFirst({
+            where: { species: std.species, stage: std.stage, weightRange: std.weightRange }
+        });
+        if (!exists) {
+            await prisma.nrcStandard.create({ data: std });
+        }
+    }
+
+    console.log('RBAC & Nutrition Seeding completed successfully!');
 }
 
 main()

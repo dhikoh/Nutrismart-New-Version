@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Res } from '@nestjs/common';
+import { Response } from 'express';
 import { EnclosuresService } from './enclosures.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { CurrentTenant } from '../common/decorators/current-tenant.decorator';
-import { RequirePermissions } from '../common/decorators/require-permissions.decorator';
-import { PermissionGuard } from '../common/guards/permission.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CurrentTenant } from '../auth/decorators/current-tenant.decorator';
+import { RequirePermissions } from '../auth/decorators/require-permissions.decorator';
+import { PermissionGuard } from '../auth/guards/permission.guard';
 
 @UseGuards(JwtAuthGuard, PermissionGuard)
 @Controller('api/internal/enclosures')
@@ -20,6 +21,22 @@ export class EnclosuresController {
     @Get()
     findAll(@CurrentTenant() tenantId: string) {
         return this.enclosuresService.findAll(tenantId);
+    }
+
+    @RequirePermissions('livestock.read')
+    @Get('export/csv')
+    async exportCsv(@CurrentTenant() tenantId: string, @Res() res: Response) {
+        const enclosures = await this.enclosuresService.findAll(tenantId);
+
+        let csvString = 'ID,Name,Type,Capacity,Current Load,Status,Created At\n';
+
+        enclosures.forEach(e => {
+            csvString += `"${e.id}","${e.name}","${e.type}",${e.capacity},${e.currentLoad},"${e.status}","${e.createdAt.toISOString()}"\n`;
+        });
+
+        res.header('Content-Type', 'text/csv');
+        res.attachment(`enclosure-export-${new Date().getTime()}.csv`);
+        return res.send(csvString);
     }
 
     @RequirePermissions('livestock.read')

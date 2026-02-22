@@ -15,11 +15,17 @@ import {
     Wallet,
     Leaf,
     ThermometerSun,
-    Sprout
+    Sprout,
+    Calculator,
+    FileText,
+    ActivitySquare,
+    Package
 } from 'lucide-react';
 
 const SHARED_MENU = [
     { name: 'Dashboard', icon: LayoutDashboard, href: '/app' },
+    { name: 'Inventory Hub', icon: Package, href: '/app/inventory' },
+    { name: 'Billing & Invoice', icon: FileText, href: '/app/billing' },
     { name: 'Finance', icon: Wallet, href: '/app/finance' },
     { name: 'Staff', icon: Users, href: '/app/staff' },
     { name: 'Settings', icon: Settings, href: '/app/settings' },
@@ -28,6 +34,8 @@ const SHARED_MENU = [
 const LIVESTOCK_MENU = [
     { name: 'Livestock', icon: PawPrint, href: '/app/livestock' },
     { name: 'Enclosures', icon: ThermometerSun, href: '/app/enclosures' },
+    { name: 'Nutrition Engine', icon: Calculator, href: '/app/nutrition' },
+    { name: 'Medical Vault', icon: ActivitySquare, href: '/app/medical' },
 ];
 
 const AGRICULTURE_MENU = [

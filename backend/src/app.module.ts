@@ -16,6 +16,9 @@ import { join } from 'path';
 import { APP_GUARD } from '@nestjs/core';
 import { EnclosuresModule } from './enclosures/enclosures.module';
 import { MedicalRecordsModule } from './medical-records/medical-records.module';
+import { NutritionCalculatorModule } from './nutrition-calculator/nutrition-calculator.module';
+import { InventoryModule } from './inventory/inventory.module';
+import { BillingModule } from './billing/billing.module';
 
 @Module({
   imports: [
@@ -37,7 +40,10 @@ import { MedicalRecordsModule } from './medical-records/medical-records.module';
     MediaModule,
     CropsModule,
     EnclosuresModule,
-    MedicalRecordsModule
+    MedicalRecordsModule,
+    NutritionCalculatorModule,
+    InventoryModule,
+    BillingModule
   ],
   controllers: [AppController],
   providers: [

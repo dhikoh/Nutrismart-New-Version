@@ -36,8 +36,8 @@ describe('Zero-Trust Security Simulation (e2e)', () => {
         await prisma.tenant.deleteMany();
 
         // 2. Setup Tenants
-        const tenantA = await prisma.tenant.create({ data: { name: 'Tenant A Farm', domain: 'tenanta.com', isActive: true } });
-        const tenantB = await prisma.tenant.create({ data: { name: 'Tenant B Farm', domain: 'tenantb.com', isActive: true } });
+        const tenantA = await prisma.tenant.create({ data: { name: 'Tenant A Farm', slug: 'tenant-a-farm', isActive: true } });
+        const tenantB = await prisma.tenant.create({ data: { name: 'Tenant B Farm', slug: 'tenant-b-farm', isActive: true } });
         tenantAId = tenantA.id;
         tenantBId = tenantB.id;
 

@@ -66,9 +66,8 @@ export class EnclosuresService {
         });
         if (!livestock) throw new NotFoundException('Livestock not found or not owned by tenant');
 
-        // Capacity Check
-        const currentCount = await this.prisma.livestock.count({ where: { enclosureId } });
-        if (currentCount >= enclosure.capacity) {
+        // Capacity Check using atomic field
+        if (enclosure.currentLoad >= enclosure.capacity) {
             throw new BadRequestException(`Enclosure is at full capacity (${enclosure.capacity})`);
         }
 

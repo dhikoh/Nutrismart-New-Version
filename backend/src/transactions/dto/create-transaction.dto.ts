@@ -10,6 +10,10 @@ export class CreateTransactionDto {
     amount: number;
 
     @IsString()
+    @IsNotEmpty()
+    category: string;
+
+    @IsString()
     @IsOptional()
     status?: string; // PENDING, COMPLETED, CANCELLED
 

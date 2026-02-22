@@ -7,7 +7,7 @@ type FarmMode = 'LIVESTOCK' | 'AGRICULTURE';
 interface FarmModeContextType {
     mode: FarmMode;
     toggleMode: () => void;
-    setMode: (mode: FarmMode) => void;
+    setMode: (mode: FarmMode | ((prev: FarmMode) => FarmMode)) => void;
 }
 
 const FarmModeContext = createContext<FarmModeContextType | undefined>(undefined);
@@ -23,9 +23,17 @@ export function FarmModeProvider({ children }: { children: React.ReactNode }) {
         }
     }, []);
 
-    const setMode = (newMode: FarmMode) => {
-        setModeState(newMode);
-        localStorage.setItem('pediavet_mode', newMode);
+    const setMode = (newMode: FarmMode | ((prev: FarmMode) => FarmMode)) => {
+        if (typeof newMode === 'function') {
+            setModeState((prev) => {
+                const updated = newMode(prev);
+                localStorage.setItem('pediavet_mode', updated);
+                return updated;
+            });
+        } else {
+            setModeState(newMode);
+            localStorage.setItem('pediavet_mode', newMode);
+        }
     };
 
     const toggleMode = () => {

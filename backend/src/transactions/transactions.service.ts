@@ -16,6 +16,7 @@ export class TransactionsService {
                 ...createTransactionDto,
                 amount: createTransactionDto.amount,
                 tenantId,
+                category: createTransactionDto.category || 'UNCATEGORIZED'
             },
         });
     }

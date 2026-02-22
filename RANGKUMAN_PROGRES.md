@@ -12,6 +12,16 @@ Dokumen ini merangkum seluruh pekerjaan yang telah diselesaikan sejak awal pemba
 - [x] **Skema Database (Zero-Trust)**: Membangun skema `schema.prisma` yang mewajibkan `tenantId` pada setiap entitas operasional (Livestock, Transaction) dilengkapi *composite index* `@@index([tenantId, id])` untuk mencegah kebocoran data antar-tenant.
 - [x] **Model Data Utama**: Entity `Tenant`, `User`, `Role`, `Permission`, `ApiKey`, `Livestock`, `Transaction`, `SystemLog`, dan `ActivityLog`.
 
+### Current Objectives
+- [x] Performa Audit: Koreksi kesalahan unit Energi NRC pada `seed.ts`
+- [x] Performa Audit: Batasi input Jenis Hewan dengan Validasi Enum di backend DTO
+- [x] Atasi Pesan Kesalahan Kompilasi Prisma dengan utilitas Axios sentral (`@lib/api`)
+- [x] Integrasi ADG: Menyertakan relasi `WeightRecord` untuk histori penimbangan berat profil ternak
+- [x] Fungsi Export Identitas Kandang (`Enclosures`) & Ternak (`Livestock`) dalam format CSV
+- [x] Sinkronisasi Atomik Transaksi Prisma antara perpindahan Ternak dan pergeseran Kapasitas Kandang (`currentLoad`)
+- [x] Persiapan Migrasi Skema Face 2: Nutrition, Billing, Inventory, dan Medical Record.
+- [ ] Push skema Prisma Face 2 ke production server via SSH (Coolify)
+
 ### 2. Backend (NestJS API Layer)
 - [x] **Sistem Autentikasi (IAM)**: Implementasi Auth JWT (Passport) dan Bcrypt untuk hash password.
 - [x] **Zero-Trust Access Control**: 

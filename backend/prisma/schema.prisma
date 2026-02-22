@@ -10,19 +10,32 @@ datasource db {
 // ==================== IDENTITY & ACCESS MANAGEMENT ====================
 
 model Tenant {
-  id        String   @id @default(uuid())
-  name      String
-  slug      String   @unique
-  isActive  Boolean  @default(true)
-  
+  id       String  @id @default(uuid())
+  name     String
+  slug     String  @unique
+  isActive Boolean @default(true)
+
   // Relations
   users        User[]
   apiKeys      ApiKey[]
   activityLogs ActivityLog[]
-  livestocks   Livestock[]
-  cropPhases   CropPhase[]
-  transactions Transaction[]
-  
+
+  // Livestock Mode
+  enclosures     Enclosure[]
+  livestocks     Livestock[]
+  medicalRecords MedicalRecord[]
+  weightRecords  WeightRecord[]
+
+  // Agriculture Mode
+  landParcels LandParcel[]
+  cropPhases  CropPhase[]
+
+  // Logistics & Finance
+  feedIngredients FeedIngredient[]
+  inventoryItems  InventoryItem[]
+  invoices        Invoice[]
+  transactions    Transaction[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -38,7 +51,7 @@ model User {
   username String @unique
   password String
   name     String
-  
+
   // Security Hardening
   isActive             Boolean   @default(true)
   lastLoginAt          DateTime?
@@ -58,15 +71,15 @@ model User {
 }
 
 model RefreshToken {
-  id          String   @id @default(uuid())
-  token       String   @unique
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  isRevoked   Boolean  @default(false)
-  deviceInfo  String?
-  ipAddress   String?
-  expiresAt   DateTime
-  createdAt   DateTime @default(now())
+  id         String   @id @default(uuid())
+  token      String   @unique
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  isRevoked  Boolean  @default(false)
+  deviceInfo String?
+  ipAddress  String?
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
 
   @@index([userId])
   @@map("refresh_tokens")
@@ -75,8 +88,8 @@ model RefreshToken {
 // ==== RBAC ====
 
 model Role {
-  id          String   @id @default(uuid())
-  name        String   @unique // e.g., SUPERADMIN, TENANT_OWNER, STAFF
+  id          String  @id @default(uuid())
+  name        String  @unique // e.g., SUPERADMIN, TENANT_OWNER, STAFF
   description String?
 
   permissions RolePermission[]
@@ -86,11 +99,11 @@ model Role {
 }
 
 model Permission {
-  id          String   @id @default(uuid())
-  action      String   @unique // e.g., 'livestock.read', 'finance.approve'
+  id          String  @id @default(uuid())
+  action      String  @unique // e.g., 'livestock.read', 'finance.approve'
   description String?
 
-  roles       RolePermission[]
+  roles RolePermission[]
 
   @@map("permissions")
 }
@@ -118,16 +131,16 @@ model UserRole {
 }
 
 model ApiKey {
-  id        String   @id @default(uuid())
-  tenantId  String
-  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  
+  id       String @id @default(uuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
   name      String
-  keyHash   String   @unique
-  prefix    String   // First 8 chars
-  scopes    String?  // JSON array of granular permissions
+  keyHash   String    @unique
+  prefix    String // First 8 chars
+  scopes    String? // JSON array of granular permissions
   expiresAt DateTime?
-  isActive  Boolean  @default(true)
+  isActive  Boolean   @default(true)
   lastUsed  DateTime?
 
   createdAt DateTime @default(now())
@@ -138,63 +151,256 @@ model ApiKey {
 
 // ==================== CORE FARM SERVICE ====================
 
-model Livestock {
-  id          String   @id @default(uuid())
-  tenantId    String
-  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+model Enclosure {
+  id       String @id @default(uuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
-  name        String
-  species     String
-  breed       String
-  dob         DateTime
+  name        String // e.g., "Kandang Sapi A", "Blok Pembibitan"
+  type        String // INDOOR, OUTDOOR, QUARANTINE
+  capacity    Int // Maximum head count
+  currentLoad Int    @default(0)
+  status      String @default("ACTIVE") // ACTIVE, MAINTENANCE, INACTIVE
+
+  livestocks Livestock[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId, id])
+  @@map("enclosures")
+}
+
+model Livestock {
+  id       String @id @default(uuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  enclosureId String?
+  enclosure   Enclosure? @relation(fields: [enclosureId], references: [id], onDelete: SetNull)
+
+  name    String
+  species String
+  breed   String
+  dob     DateTime
 
   currentWeight Float
   status        String
 
-  // Market
-  isForSale   Boolean @default(false)
-  salePrice   Decimal?
-  publicNotes String? @db.Text
+  // Financial tracking (HPP - Harga Pokok Penjualan)
+  acquisitionCost Decimal @default(0) // Modal awal beli/lahir
+  accumulatedCost Decimal @default(0) // Total biaya pakan & medis
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  // Market
+  isForSale   Boolean  @default(false)
+  salePrice   Decimal?
+  publicNotes String?  @db.Text
+
+  weightRecords  WeightRecord[]
+  medicalRecords MedicalRecord[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([tenantId, id]) // Zero-Trust composite index
   @@map("livestock")
 }
 
+model LandParcel {
+  id       String @id @default(uuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  name     String // e.g., "Blok Utara 1"
+  area     Float // Area in hectares or m2
+  soilType String?
+  status   String  @default("IDLE") // IDLE, PLANTED, RESTING
+
+  cropPhases CropPhase[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId, id])
+  @@map("land_parcels")
+}
+
 model CropPhase {
-  id          String   @id @default(uuid())
-  tenantId    String
-  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  id       String @id @default(uuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
-  name        String   // Letuce, Tomato, etc.
-  phase       String   // Seeding, Vegetative, Flowering, Harvesting
-  plantedAt   DateTime
-  estHarvest  DateTime?
-  status      String   @default("ACTIVE") // ACTIVE, COMPLETED, FAILED
+  landParcelId String?
+  landParcel   LandParcel? @relation(fields: [landParcelId], references: [id], onDelete: SetNull)
 
-  notes       String?  @db.Text
+  name       String // Letuce, Tomato, etc.
+  phase      String // Seeding, Vegetative, Flowering, Harvesting
+  plantedAt  DateTime
+  estHarvest DateTime?
+  status     String    @default("ACTIVE") // ACTIVE, COMPLETED, FAILED
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  notes String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([tenantId, id])
   @@map("crop_phases")
 }
 
+// ==================== MEDICAL & VETERINARY ====================
+
+model MedicalRecord {
+  id       String @id @default(uuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  livestockId String
+  livestock   Livestock @relation(fields: [livestockId], references: [id], onDelete: Cascade)
+
+  recordType String // VACCINATION, TREATMENT, CHECKUP
+  date       DateTime
+  diagnosis  String?  @db.Text
+  treatment  String?  @db.Text
+  cost       Decimal  @default(0) // Automatically adds to Livestock.accumulatedCost
+
+  veterinarian String? // Name of the vet
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId, id])
+  @@map("medical_records")
+}
+
+model WeightRecord {
+  id       String @id @default(uuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  livestockId String
+  livestock   Livestock @relation(fields: [livestockId], references: [id], onDelete: Cascade)
+
+  weight Float    // Weight in kg
+  date   DateTime // Date of measurement
+  notes  String?  @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId, livestockId])
+  @@map("weight_records")
+}
+
+// ==================== NUTRITION & FEED CALCULATOR ====================
+
+model FeedIngredient {
+  id       String  @id @default(uuid())
+  tenantId String? // If null, it's a global/system master preset
+  tenant   Tenant? @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  name                String
+  dryMatter           Float  @default(0) // %
+  crudeProtein        Float  @default(0) // PK (%)
+  crudeFiber          Float  @default(0) // SK (%)
+  crudeFat            Float  @default(0) // LK (%)
+  ash                 Float  @default(0) // Abu (%)
+  calcium             Float  @default(0) // Ca (%)
+  phosphorus          Float  @default(0) // P (%)
+  metabolizableEnergy Float  @default(0) // ME (Kcal/kg)
+
+  pricePerKg Decimal @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("feed_ingredients")
+}
+
+model NrcStandard {
+  id String @id @default(uuid()) // Master table, global only, no tenantId
+
+  species     String // BOVINE, OVINE, CAPRINE, POULTRY
+  stage       String // LACTATION, GESTATION, GROWTH, MAINTENANCE
+  weightRange String // e.g., "300-400" kg
+
+  // Minimum thresholds
+  reqDryMatter    Float
+  reqCrudeProtein Float
+  reqEnergy       Float // ME
+  reqCalcium      Float
+  reqPhosphorus   Float
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("nrc_standards")
+}
+
+// ==================== FINANCE & INVENTORY ====================
+
+model InventoryItem {
+  id       String @id @default(uuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  sku       String?
+  name      String
+  category  String // FEED, MEDICINE, SEED, FERTILIZER, EQUIPMENT
+  unit      String // KG, LITER, PCS
+  stock     Float   @default(0)
+  unitPrice Decimal @default(0) // For asset valuation
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId, id])
+  @@map("inventory_items")
+}
+
+model Invoice {
+  id       String @id @default(uuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  invoiceNumber String    @unique
+  date          DateTime
+  dueDate       DateTime?
+  customerName  String?
+
+  subtotal Decimal
+  tax      Decimal @default(0)
+  discount Decimal @default(0)
+  total    Decimal
+
+  status String @default("DRAFT") // DRAFT, ISSUED, PAID, CANCELLED
+  type   String // SALES, PURCHASE
+
+  transactions Transaction[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId, id])
+  @@map("invoices")
+}
+
 model Transaction {
-  id          String   @id @default(uuid())
-  tenantId    String
-  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  id       String @id @default(uuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
-  type        String   // SALE, PURCHASE
-  amount      Decimal
-  status      String   @default("PENDING") // PENDING, COMPLETED, CANCELLED
-  notes       String?
+  invoiceId String?
+  invoice   Invoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  type     String // INCOME, EXPENSE
+  category String // FEED_COST, MEDICAL_COST, SEED_COST, LIVESTOCK_SALE, CROP_SALE
+  amount   Decimal
+  status   String  @default("PENDING") // PENDING, COMPLETED, CANCELLED
+  notes    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([tenantId, id]) // Zero-Trust composite index
   @@map("transactions")
@@ -203,31 +409,31 @@ model Transaction {
 // ==================== OBSERVABILITY ====================
 
 model SystemLog {
-  id        String   @id @default(uuid())
-  level     String   // INFO, WARN, ERROR, CRITICAL
-  module    String   // AUTH, API_GATEWAY, TENANT_GUARD, AI_SERVICE
-  message   String   @db.Text
-  details   String?  @db.Text // JSON context
+  id        String  @id @default(uuid())
+  level     String // INFO, WARN, ERROR, CRITICAL
+  module    String // AUTH, API_GATEWAY, TENANT_GUARD, AI_SERVICE
+  message   String  @db.Text
+  details   String? @db.Text // JSON context
   ipAddress String?
-  
+
   createdAt DateTime @default(now())
 
   @@map("system_logs")
 }
 
 model ActivityLog {
-  id         String   @id @default(uuid())
-  tenantId   String
-  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  
-  userId     String?  // Optional for API key actions
-  action     String   // LOGIN, LIVESTOCK_CREATE, PAYMENT_APPROVE
+  id       String @id @default(uuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  userId     String? // Optional for API key actions
+  action     String // LOGIN, LIVESTOCK_CREATE, PAYMENT_APPROVE
   entityType String?
   entityId   String?
-  details    String?  @db.Text
+  details    String? @db.Text
   ipAddress  String?
 
-  createdAt  DateTime @default(now())
+  createdAt DateTime @default(now())
 
   @@index([tenantId])
   @@map("activity_logs")

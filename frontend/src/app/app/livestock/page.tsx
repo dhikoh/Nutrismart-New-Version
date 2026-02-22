@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { NeuCard } from '@/components/ui/NeuCard';
 import { api } from '@/lib/api';
-import { PawPrint } from 'lucide-react';
+import { PawPrint, DownloadCloud } from 'lucide-react';
 import { NeuDataTable } from '@/components/ui/NeuDataTable';
 
 export default function LivestockPage() {
@@ -27,6 +27,24 @@ export default function LivestockPage() {
 
         fetchLivestock();
     }, []);
+
+    const handleExportCsv = async () => {
+        try {
+            const response = await api.get('/api/internal/livestock/export/csv', {
+                responseType: 'blob'
+            });
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `PediaVet_Livestock_Export_${new Date().getTime()}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            link.parentNode?.removeChild(link);
+        } catch (err) {
+            console.error("Failed to export CSV", err);
+            setError("Failed to download CSV export.");
+        }
+    };
 
     const columns = [
         { key: 'name', header: 'Name/Tag' },
@@ -53,9 +71,15 @@ export default function LivestockPage() {
                     </h1>
                     <p className="text-gray-500 mt-2">Manage your animals, health records, and groupings.</p>
                 </div>
-                <button className="neu-button px-6 py-3 rounded-xl font-bold text-[#00bfa5] hover:text-[#00cca8]">
-                    + Add Animal
-                </button>
+                <div className="flex gap-4">
+                    <button onClick={handleExportCsv} className="neu-flat px-4 py-3 rounded-xl font-bold text-gray-600 hover:text-gray-800 flex items-center gap-2">
+                        <DownloadCloud className="w-5 h-5" />
+                        Export
+                    </button>
+                    <button className="neu-button px-6 py-3 rounded-xl font-bold text-[#00bfa5] hover:text-[#00cca8]">
+                        + Add Animal
+                    </button>
+                </div>
             </div>
 
             {error && (

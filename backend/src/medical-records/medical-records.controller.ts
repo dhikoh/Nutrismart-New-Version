@@ -1,9 +1,9 @@
 import { Controller, Get, Post, Body, Param, UseGuards } from '@nestjs/common';
 import { MedicalRecordsService } from './medical-records.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { CurrentTenant } from '../common/decorators/current-tenant.decorator';
-import { RequirePermissions } from '../common/decorators/require-permissions.decorator';
-import { PermissionGuard } from '../common/guards/permission.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CurrentTenant } from '../auth/decorators/current-tenant.decorator';
+import { RequirePermissions } from '../auth/decorators/require-permissions.decorator';
+import { PermissionGuard } from '../auth/guards/permission.guard';
 
 @UseGuards(JwtAuthGuard, PermissionGuard)
 @Controller('api/internal/medical-records')
