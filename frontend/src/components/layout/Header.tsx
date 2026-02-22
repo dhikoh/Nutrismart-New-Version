@@ -1,7 +1,9 @@
 import React from 'react';
-import { Bell, Search, Menu } from 'lucide-react';
+import { Bell, Search, Menu, Tractor, PawPrint } from 'lucide-react';
+import { useFarmMode } from '../providers/FarmModeProvider';
 
 export function Header() {
+    const { mode, toggleMode } = useFarmMode();
     return (
         <header className="h-24 w-full px-8 py-4 flex items-center justify-between z-10 bg-[#ecf0f3]">
             <div className="flex items-center w-1/2">
@@ -21,6 +23,25 @@ export function Header() {
             </div>
 
             <div className="flex items-center space-x-6">
+
+                {/* DUAL MODE TOGGLE */}
+                <div className="flex items-center space-x-2 neu-pressed p-1 rounded-2xl bg-[#ecf0f3]">
+                    <button
+                        onClick={() => mode !== 'LIVESTOCK' && toggleMode()}
+                        className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${mode === 'LIVESTOCK' ? 'neu-flat text-[#00bfa5]' : 'text-gray-400 hover:text-gray-600'}`}
+                    >
+                        <PawPrint className="w-4 h-4" />
+                        <span className="hidden md:inline">Livestock</span>
+                    </button>
+                    <button
+                        onClick={() => mode !== 'AGRICULTURE' && toggleMode()}
+                        className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${mode === 'AGRICULTURE' ? 'neu-flat text-orange-500' : 'text-gray-400 hover:text-gray-600'}`}
+                    >
+                        <Tractor className="w-4 h-4" />
+                        <span className="hidden md:inline">Agriculture</span>
+                    </button>
+                </div>
+
                 {/* NOTIFICATION */}
                 <button className="w-12 h-12 neu-button rounded-full flex items-center justify-center text-gray-500 hover:text-[#00bfa5] transition-colors relative">
                     <Bell className="w-5 h-5" />

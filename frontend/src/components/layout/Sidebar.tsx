@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { useFarmMode } from '../providers/FarmModeProvider';
 import {
     LayoutDashboard,
     Users,
@@ -12,19 +13,35 @@ import {
     Tractor,
     PawPrint,
     Wallet
+    Leaf,
+    ThermometerSun,
+    Sprout
 } from 'lucide-react';
 
-const MENU_ITEMS = [
+const SHARED_MENU = [
     { name: 'Dashboard', icon: LayoutDashboard, href: '/app' },
-    { name: 'Livestock', icon: PawPrint, href: '/app/livestock' },
-    { name: 'Agriculture', icon: Tractor, href: '/app/agriculture' },
     { name: 'Finance', icon: Wallet, href: '/app/finance' },
     { name: 'Staff', icon: Users, href: '/app/staff' },
     { name: 'Settings', icon: Settings, href: '/app/settings' },
 ];
 
+const LIVESTOCK_MENU = [
+    { name: 'Livestock', icon: PawPrint, href: '/app/livestock' },
+    { name: 'Enclosures', icon: ThermometerSun, href: '/app/enclosures' },
+];
+
+const AGRICULTURE_MENU = [
+    { name: 'Land Parcels', icon: Sprout, href: '/app/agriculture' },
+    { name: 'Crop Phases', icon: Leaf, href: '/app/crops' },
+];
+
 export function Sidebar() {
     const pathname = usePathname();
+    const { mode } = useFarmMode();
+
+    const activeMenu = mode === 'LIVESTOCK'
+        ? [SHARED_MENU[0], ...LIVESTOCK_MENU, ...SHARED_MENU.slice(1)]
+        : [SHARED_MENU[0], ...AGRICULTURE_MENU, ...SHARED_MENU.slice(1)];
 
     return (
         <aside className="w-64 flex-shrink-0 h-screen neu-flat p-6 flex flex-col justify-between hidden md:flex rounded-r-[30px] z-20">
@@ -38,7 +55,10 @@ export function Sidebar() {
 
                 {/* NAVIGATION LINKS */}
                 <nav className="space-y-4">
-                    {MENU_ITEMS.map((item) => {
+                    <p className="px-5 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                        {mode === 'LIVESTOCK' ? 'Livestock Operations' : 'Agriculture Tracking'}
+                    </p>
+                    {activeMenu.map((item) => {
                         const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
                         return (
                             <Link
