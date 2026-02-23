@@ -27,6 +27,18 @@ export class NutritionCalculatorService {
         });
     }
 
+    async updateFeedIngredient(tenantId: string, id: string, data: any) {
+        const item = await this.prisma.feedIngredient.findFirst({ where: { id, tenantId } });
+        if (!item) throw new NotFoundException('Bahan pakan tidak ditemukan atau bukan milik tenant ini.');
+        return this.prisma.feedIngredient.update({ where: { id }, data });
+    }
+
+    async deleteFeedIngredient(tenantId: string, id: string) {
+        const item = await this.prisma.feedIngredient.findFirst({ where: { id, tenantId } });
+        if (!item) throw new NotFoundException('Bahan pakan tidak ditemukan atau tidak bisa dihapus (data master global).');
+        return this.prisma.feedIngredient.delete({ where: { id } });
+    }
+
     /**
      * Calculate a multi-ingredient ration based on user-specified percentages.
      * Computes actual nutrient content, LCR cost, and optional NRC comparison.
