@@ -35,6 +35,7 @@ model Tenant {
   inventoryItems  InventoryItem[]
   invoices        Invoice[]
   transactions    Transaction[]
+  scoopConfig     ScoopConfig?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -300,14 +301,20 @@ model FeedIngredient {
   tenant   Tenant? @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   name                String
-  dryMatter           Float  @default(0) // %
-  crudeProtein        Float  @default(0) // PK (%)
-  crudeFiber          Float  @default(0) // SK (%)
-  crudeFat            Float  @default(0) // LK (%)
-  ash                 Float  @default(0) // Abu (%)
-  calcium             Float  @default(0) // Ca (%)
-  phosphorus          Float  @default(0) // P (%)
-  metabolizableEnergy Float  @default(0) // ME (Kcal/kg)
+  dryMatter           Float   @default(0) // BK (%)
+  crudeProtein        Float   @default(0) // PK (%)
+  crudeFiber          Float   @default(0) // SK (%)
+  crudeFat            Float   @default(0) // LK / Lemak (%)
+  ash                 Float   @default(0) // Abu (%)
+  calcium             Float   @default(0) // Ca (%)
+  phosphorus          Float   @default(0) // P (%)
+  metabolizableEnergy Float   @default(0) // ME (Kcal/kg)
+  tdn                 Float   @default(0) // TDN / TON (%)
+  ndf                 Float   @default(0) // NDF (%)
+
+  // Per-tenant stock & category
+  stock    Float   @default(0)        // Stok (kg)
+  category String  @default("SEDANG") // RINGAN | SEDANG | BERAT
 
   pricePerKg Decimal @default(0)
 
@@ -315,6 +322,21 @@ model FeedIngredient {
   updatedAt DateTime @updatedAt
 
   @@map("feed_ingredients")
+}
+
+model ScoopConfig {
+  id       String @id @default(uuid())
+  tenantId String @unique
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  // kg per scoop/gayung per category
+  ringanKgPerScoop Float @default(0.275)
+  sedangKgPerScoop Float @default(0.600)
+  beratKgPerScoop  Float @default(0.615)
+
+  updatedAt DateTime @updatedAt
+
+  @@map("scoop_configs")
 }
 
 model NrcStandard {

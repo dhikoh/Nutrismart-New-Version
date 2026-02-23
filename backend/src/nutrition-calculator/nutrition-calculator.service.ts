@@ -13,8 +13,8 @@ export class NutritionCalculatorService {
         return this.prisma.feedIngredient.findMany({
             where: {
                 OR: [
-                    { tenantId: null },
-                    { tenantId }
+                    { tenantId: null },  // Global master presets (read-only)
+                    { tenantId }         // Tenant's own feeds
                 ]
             },
             orderBy: { name: 'asc' }
@@ -22,22 +22,111 @@ export class NutritionCalculatorService {
     }
 
     async createFeedIngredient(tenantId: string, data: any) {
+        const { name, dryMatter, crudeProtein, crudeFiber, crudeFat, ash, calcium, phosphorus,
+            metabolizableEnergy, tdn, ndf, stock, category, pricePerKg } = data;
         return this.prisma.feedIngredient.create({
-            data: { ...data, tenantId }
+            data: {
+                tenantId,
+                name, dryMatter, crudeProtein, crudeFiber, crudeFat, ash,
+                calcium, phosphorus, metabolizableEnergy,
+                tdn: tdn ?? 0, ndf: ndf ?? 0,
+                stock: stock ?? 0, category: category ?? 'SEDANG',
+                pricePerKg: pricePerKg ?? 0,
+            }
         });
     }
 
     async updateFeedIngredient(tenantId: string, id: string, data: any) {
         const item = await this.prisma.feedIngredient.findFirst({ where: { id, tenantId } });
-        if (!item) throw new NotFoundException('Bahan pakan tidak ditemukan atau bukan milik tenant ini.');
-        return this.prisma.feedIngredient.update({ where: { id }, data });
+        if (!item) throw new NotFoundException('Bahan pakan tidak ditemukan atau bukan milik Anda.');
+        const { name, dryMatter, crudeProtein, crudeFiber, crudeFat, ash, calcium, phosphorus,
+            metabolizableEnergy, tdn, ndf, stock, category, pricePerKg } = data;
+        return this.prisma.feedIngredient.update({
+            where: { id },
+            data: {
+                name, dryMatter, crudeProtein, crudeFiber, crudeFat, ash,
+                calcium, phosphorus, metabolizableEnergy,
+                ...(tdn !== undefined && { tdn }),
+                ...(ndf !== undefined && { ndf }),
+                ...(stock !== undefined && { stock }),
+                ...(category !== undefined && { category }),
+                ...(pricePerKg !== undefined && { pricePerKg }),
+            }
+        });
     }
 
     async deleteFeedIngredient(tenantId: string, id: string) {
         const item = await this.prisma.feedIngredient.findFirst({ where: { id, tenantId } });
-        if (!item) throw new NotFoundException('Bahan pakan tidak ditemukan atau tidak bisa dihapus (data master global).');
+        if (!item) throw new NotFoundException('Bahan tidak ditemukan atau tidak bisa dihapus (data master global).');
         return this.prisma.feedIngredient.delete({ where: { id } });
     }
+
+    // ─── Scoop Configuration ─────────────────────────────────────────────────
+
+    async getScoopConfig(tenantId: string) {
+        let config = await this.prisma.scoopConfig.findUnique({ where: { tenantId } });
+        if (!config) {
+            config = await this.prisma.scoopConfig.create({
+                data: { tenantId, ringanKgPerScoop: 0.275, sedangKgPerScoop: 0.600, beratKgPerScoop: 0.615 }
+            });
+        }
+        return config;
+    }
+
+    async updateScoopConfig(tenantId: string, data: { ringanKgPerScoop: number; sedangKgPerScoop: number; beratKgPerScoop: number }) {
+        return this.prisma.scoopConfig.upsert({
+            where: { tenantId },
+            update: data,
+            create: { tenantId, ...data },
+        });
+    }
+
+    // ─── Import / Export JSON ─────────────────────────────────────────────────
+
+    async exportFeedIngredients(tenantId: string) {
+        const feeds = await this.prisma.feedIngredient.findMany({
+            where: { tenantId },       // Only export tenant's own data
+            orderBy: { name: 'asc' },
+        });
+        return feeds.map(f => ({
+            name: f.name, dryMatter: f.dryMatter, crudeProtein: f.crudeProtein,
+            crudeFiber: f.crudeFiber, crudeFat: f.crudeFat, ash: f.ash,
+            calcium: f.calcium, phosphorus: f.phosphorus,
+            metabolizableEnergy: f.metabolizableEnergy, tdn: f.tdn, ndf: f.ndf,
+            stock: f.stock, category: f.category, pricePerKg: Number(f.pricePerKg),
+        }));
+    }
+
+    async importFeedIngredients(tenantId: string, items: any[]) {
+        if (!Array.isArray(items) || items.length === 0) {
+            throw new BadRequestException('Data JSON tidak valid atau kosong.');
+        }
+        let created = 0; let updated = 0;
+        for (const item of items) {
+            if (!item.name) continue;
+            const existing = await this.prisma.feedIngredient.findFirst({ where: { name: item.name, tenantId } });
+            if (existing) {
+                await this.prisma.feedIngredient.update({ where: { id: existing.id }, data: { ...item, pricePerKg: item.pricePerKg ?? 0 } });
+                updated++;
+            } else {
+                await this.prisma.feedIngredient.create({
+                    data: {
+                        tenantId, name: item.name,
+                        dryMatter: item.dryMatter ?? 0, crudeProtein: item.crudeProtein ?? 0,
+                        crudeFiber: item.crudeFiber ?? 0, crudeFat: item.crudeFat ?? 0,
+                        ash: item.ash ?? 0, calcium: item.calcium ?? 0,
+                        phosphorus: item.phosphorus ?? 0, metabolizableEnergy: item.metabolizableEnergy ?? 0,
+                        tdn: item.tdn ?? 0, ndf: item.ndf ?? 0,
+                        stock: item.stock ?? 0, category: item.category ?? 'SEDANG',
+                        pricePerKg: item.pricePerKg ?? 0,
+                    }
+                });
+                created++;
+            }
+        }
+        return { message: `Import selesai: ${created} bahan ditambahkan, ${updated} bahan diperbarui.`, created, updated };
+    }
+
 
     /**
      * Calculate a multi-ingredient ration based on user-specified percentages.

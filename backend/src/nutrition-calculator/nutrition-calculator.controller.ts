@@ -10,12 +10,12 @@ import { PermissionGuard } from '../auth/guards/permission.guard';
 export class NutritionCalculatorController {
     constructor(private readonly nrcService: NutritionCalculatorService) { }
 
+    // ─── NRC Standards ────────────────────────────────────────────────────────
     @RequirePermissions('livestock.read')
     @Get('nrc-standards')
-    getNrcStandards() {
-        return this.nrcService.getNrcStandards();
-    }
+    getNrcStandards() { return this.nrcService.getNrcStandards(); }
 
+    // ─── Feed Ingredients CRUD ────────────────────────────────────────────────
     @RequirePermissions('livestock.read')
     @Get('ingredients')
     getIngredients(@CurrentTenant() tenantId: string) {
@@ -30,11 +30,7 @@ export class NutritionCalculatorController {
 
     @RequirePermissions('livestock.write')
     @Patch('ingredients/:id')
-    updateIngredient(
-        @CurrentTenant() tenantId: string,
-        @Param('id') id: string,
-        @Body() data: any,
-    ) {
+    updateIngredient(@CurrentTenant() tenantId: string, @Param('id') id: string, @Body() data: any) {
         return this.nrcService.updateFeedIngredient(tenantId, id, data);
     }
 
@@ -44,21 +40,40 @@ export class NutritionCalculatorController {
         return this.nrcService.deleteFeedIngredient(tenantId, id);
     }
 
-    /**
-     * Multi-ingredient ration calculation:
-     * - Weighted nutrient totals (PK, ME, Ca, P, etc.)
-     * - LCR (Least Cost Ration) in Rp/kg
-     * - Optional NRC comparison
-     */
+    // ─── Import / Export JSON ─────────────────────────────────────────────────
+    @RequirePermissions('livestock.read')
+    @Get('ingredients/export')
+    exportIngredients(@CurrentTenant() tenantId: string) {
+        return this.nrcService.exportFeedIngredients(tenantId);
+    }
+
+    @RequirePermissions('livestock.write')
+    @Post('ingredients/import')
+    importIngredients(@CurrentTenant() tenantId: string, @Body('items') items: any[]) {
+        return this.nrcService.importFeedIngredients(tenantId, items);
+    }
+
+    // ─── Scoop Configuration ─────────────────────────────────────────────────
+    @RequirePermissions('livestock.read')
+    @Get('scoop-config')
+    getScoopConfig(@CurrentTenant() tenantId: string) {
+        return this.nrcService.getScoopConfig(tenantId);
+    }
+
+    @RequirePermissions('livestock.write')
+    @Patch('scoop-config')
+    updateScoopConfig(@CurrentTenant() tenantId: string, @Body() data: any) {
+        return this.nrcService.updateScoopConfig(tenantId, data);
+    }
+
+    // ─── Ration Calculation ───────────────────────────────────────────────────
     @RequirePermissions('livestock.read')
     @Post('calculate-ration')
     calculateRation(
         @CurrentTenant() tenantId: string,
         @Body('items') items: { ingredientId: string; percentage: number }[],
         @Body('targetNrcId') targetNrcId?: string,
-    ) {
-        return this.nrcService.calculateRation(tenantId, items, targetNrcId);
-    }
+    ) { return this.nrcService.calculateRation(tenantId, items, targetNrcId); }
 
     @RequirePermissions('livestock.read')
     @Post('calculate/pearson')
@@ -67,7 +82,5 @@ export class NutritionCalculatorController {
         @Body('ingredientAId') a: string,
         @Body('ingredientBId') b: string,
         @Body('targetProtein') target: number,
-    ) {
-        return this.nrcService.calculatePearsonSquare(tenantId, a, b, target);
-    }
+    ) { return this.nrcService.calculatePearsonSquare(tenantId, a, b, target); }
 }
