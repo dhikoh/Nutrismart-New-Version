@@ -1,24 +1,37 @@
 FROM node:20-alpine AS builder
 
 WORKDIR /app
+
+# Install dependencies (all, including devDeps for nest build)
 COPY package*.json ./
 COPY prisma ./prisma/
-# FORCE DEVELOPMENT MODE FOR INSTALLING DEV DEPENDENCIES (like @nestjs/cli)
-ENV NODE_ENV=development
+
+# Always install ALL deps in builder (including @nestjs/cli in devDeps)
 RUN npm ci
 
 COPY . .
-RUN npx prisma generate
-ENV NODE_ENV=production
-RUN npm run build
 
+# Generate Prisma client then build NestJS
+RUN npx prisma generate && npm run build
+
+# Verify dist/main.js exists — fail loudly if not
+RUN test -f dist/main.js || (echo "ERROR: dist/main.js not found. Build failed." && exit 1)
+
+# ─── Runner Stage ─────────────────────────────────────────────────────────────
 FROM node:20-alpine AS runner
+
 WORKDIR /app
 
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/node_modules ./node_modules
+# Only copy production dependencies
+COPY package*.json ./
+RUN npm ci --omit=dev
+
+# Copy built artifacts and prisma from builder
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 COPY --from=builder /app/prisma ./prisma
 
 EXPOSE 3000
-CMD ["npm", "run", "start:prod"]
+
+CMD ["node", "dist/main"]
