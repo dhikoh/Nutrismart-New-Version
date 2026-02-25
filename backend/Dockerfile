@@ -2,20 +2,24 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files and prisma schema
 COPY package*.json ./
 COPY prisma ./prisma/
+COPY tsconfig*.json ./
+COPY nest-cli.json ./
 
-# Install ALL dependencies (@nestjs/cli is now in dependencies, not devDeps)
+# Install ALL deps (nest/cli is in dependencies now)
 RUN npm ci --include=dev
 
-COPY . .
+COPY src ./src
 
-# Generate Prisma client and build NestJS
-RUN npx prisma generate && npm run build
+# Generate Prisma client
+RUN npx prisma generate
 
-# Confirm output exists
-RUN ls dist/main.js
+# Build with tsc directly — reliable across all environments
+RUN ./node_modules/.bin/tsc -p tsconfig.build.json
+
+# Verify output
+RUN ls -la dist/ && echo "dist/main.js exists: $(ls dist/main.js)"
 
 # ─── Runner Stage ─────────────────────────────────────────────────────────────
 FROM node:20-alpine AS runner
