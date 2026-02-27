@@ -12,11 +12,11 @@ export default function AppLayoutClient({
 }) {
     return (
         <FarmModeProvider>
-            <div className="flex bg-[#ecf0f3] min-h-screen text-[#171717] font-sans">
+            <div className="flex min-h-screen font-sans bg-slate-50 text-slate-800">
                 <Sidebar />
                 <div className="flex-1 flex flex-col min-w-0">
                     <Header />
-                    <main className="flex-1 overflow-x-hidden overflow-y-auto bg-[#ecf0f3] p-8">
+                    <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-8">
                         <div className="max-w-7xl mx-auto">
                             {children}
                         </div>

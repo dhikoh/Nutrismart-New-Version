@@ -44,16 +44,9 @@
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: #ecf0f3;
-  --foreground: #171717;
-  
-  /* Neumorphic specific colors */
-  --neumorphic-light: #ffffff;
-  --neumorphic-dark: #cbced1;
-  --neumorphic-bg: #ecf0f3;
-  --neumorphic-text: #555555;
-  --neumorphic-primary: #00bfa5;
+  --radius: 1rem;
+  --background: #f7f9fb;
+  --foreground: #0f172a;
 }
 
 @layer base {
@@ -62,60 +55,29 @@
   }
 
   body {
-    @apply bg-background text-foreground tracking-wide;
+    @apply bg-background text-foreground tracking-normal font-sans;
   }
 }
 
-/* Base Neumorphic Utilities */
+/* Built-in Bento Grid Utilities */
 @layer utilities {
-  .neu-flat {
-    background: var(--neumorphic-bg);
-    box-shadow: 13px 13px 20px var(--neumorphic-dark),
-               -13px -13px 20px var(--neumorphic-light);
-  }
-  
-  .neu-flat-sm {
-    background: var(--neumorphic-bg);
-    box-shadow: 5px 5px 10px var(--neumorphic-dark),
-               -5px -5px 10px var(--neumorphic-light);
-  }
-  
-  .neu-flat-lg {
-    background: var(--neumorphic-bg);
-    box-shadow: 20px 20px 30px var(--neumorphic-dark),
-               -20px -20px 30px var(--neumorphic-light);
+  .bento-card {
+    @apply bg-white border border-slate-200/70 rounded-[2rem] shadow-md shadow-blue-500/5 transition-all overflow-hidden;
   }
 
-  .neu-pressed {
-    background: var(--neumorphic-bg);
-    box-shadow: inset 5px 5px 10px var(--neumorphic-dark),
-               inset -5px -5px 10px var(--neumorphic-light);
+  .bento-card-interactive {
+    @apply hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/10 active:scale-[0.98];
   }
-  
-  .neu-button {
-    background: var(--neumorphic-bg);
-    box-shadow: 6px 6px 12px var(--neumorphic-dark),
-               -6px -6px 12px var(--neumorphic-light);
-    transition: all 0.2s ease-in-out;
+
+  .bento-button {
+    @apply bg-white border border-slate-200 text-slate-700 font-semibold shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 active:scale-95;
   }
-  
-  .neu-button:active {
-    box-shadow: inset 4px 4px 8px var(--neumorphic-dark),
-               inset -4px -4px 8px var(--neumorphic-light);
+
+  .bento-button-primary {
+    @apply bg-gradient-to-br from-indigo-500 to-blue-600 text-white border-transparent shadow-md shadow-blue-500/30 hover:shadow-lg hover:shadow-blue-600/40 hover:from-indigo-600 hover:to-blue-700;
   }
-  
-  .neu-input {
-    background: var(--neumorphic-bg);
-    box-shadow: inset 5px 5px 8px var(--neumorphic-dark),
-               inset -5px -5px 8px var(--neumorphic-light);
-    border: none;
-    outline: none;
-    transition: all 0.2s ease-in-out;
-  }
-  
-  .neu-input:focus {
-    box-shadow: inset 2px 2px 4px var(--neumorphic-dark),
-               inset -2px -2px 4px var(--neumorphic-light),
-               0 0 0 2px var(--neumorphic-primary);
+
+  .bento-input {
+    @apply bg-slate-50 border border-slate-200 text-slate-800 rounded-2xl transition-all focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none;
   }
 }

@@ -2,9 +2,9 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { NeuCard } from '@/components/ui/NeuCard';
-import { NeuInput } from '@/components/ui/NeuInput';
-import { NeuButton } from '@/components/ui/NeuButton';
+import { BentoCard } from '@/components/ui/BentoCard';
+import { BentoInput } from '@/components/ui/BentoInput';
+import { BentoButton } from '@/components/ui/BentoButton';
 import { Building2, MapPin, Phone } from 'lucide-react';
 
 export default function SetupTenantPage() {
@@ -14,7 +14,7 @@ export default function SetupTenantPage() {
     const handleSetup = (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-        // Simulate tenant creation API call
+        // Tenant creation API mock or call goes here
         setTimeout(() => {
             setLoading(false);
             router.push('/app');
@@ -22,18 +22,22 @@ export default function SetupTenantPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-[#ecf0f3] p-4 font-sans text-gray-700">
-            <NeuCard className="w-full max-w-xl" size="lg">
+        <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4 font-sans relative overflow-hidden">
+            {/* Background elements for premium feel */}
+            <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-emerald-400/10 blur-[100px] pointer-events-none" />
+            <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-blue-400/10 blur-[100px] pointer-events-none" />
+
+            <BentoCard padding="lg" className="w-full max-w-xl relative z-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="text-center mb-8">
-                    <div className="w-16 h-16 mx-auto neu-flat rounded-full flex items-center justify-center mb-4 text-[#00bfa5]">
+                    <div className="w-16 h-16 mx-auto bg-emerald-50 border border-emerald-100 shadow-sm rounded-2xl flex items-center justify-center mb-4 text-emerald-600">
                         <Building2 size={24} />
                     </div>
-                    <h1 className="text-2xl font-bold tracking-tight text-gray-800">Setup Your Farm</h1>
-                    <p className="text-sm text-gray-500 mt-2">Complete your tenant profile to get started with PediaVet.</p>
+                    <h1 className="text-2xl font-bold tracking-tight text-slate-800 font-outfit">Setup Your Farm</h1>
+                    <p className="text-sm text-slate-500 mt-2 font-medium">Complete your tenant profile to get started with PediaVet.</p>
                 </div>
 
                 <form onSubmit={handleSetup} className="space-y-6">
-                    <NeuInput
+                    <BentoInput
                         label="Farm/Company Name"
                         type="text"
                         required
@@ -41,7 +45,7 @@ export default function SetupTenantPage() {
                         placeholder="e.g. Nusantara Farm"
                     />
 
-                    <NeuInput
+                    <BentoInput
                         label="Address"
                         type="text"
                         required
@@ -49,7 +53,7 @@ export default function SetupTenantPage() {
                         placeholder="Primary location of operation"
                     />
 
-                    <NeuInput
+                    <BentoInput
                         label="Contact Phone"
                         type="tel"
                         required
@@ -58,18 +62,18 @@ export default function SetupTenantPage() {
                     />
 
                     <div className="pt-4">
-                        <NeuButton
+                        <BentoButton
                             type="submit"
                             disabled={loading}
                             variant="primary"
-                            className="w-full bg-[#ecf0f3]"
+                            className="w-full"
                             size="lg"
                         >
                             {loading ? "Creating Tenant..." : "Complete Setup"}
-                        </NeuButton>
+                        </BentoButton>
                     </div>
                 </form>
-            </NeuCard>
+            </BentoCard>
         </div>
     );
 }

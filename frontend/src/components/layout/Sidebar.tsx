@@ -54,44 +54,49 @@ export function Sidebar() {
         : [SHARED_MENU[0], ...AGRICULTURE_MENU, ...SHARED_MENU.slice(1)];
 
     return (
-        <aside className="w-64 flex-shrink-0 h-screen neu-flat p-6 flex flex-col justify-between hidden md:flex rounded-r-[30px] z-20">
-            <div>
+        <aside className="w-[280px] flex-shrink-0 h-screen bg-white border-r border-slate-200 p-6 flex flex-col justify-between hidden md:flex z-20 shadow-sm">
+            <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
                 {/* LOGO AREA */}
-                <div className="flex items-center justify-center mb-10">
-                    <div className="w-16 h-16 neu-button rounded-full flex items-center justify-center">
-                        <span className="text-2xl font-bold text-[#00bfa5] tracking-wider">PV</span>
+                <div className="flex items-center justify-center mb-8">
+                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30 ring-4 ring-blue-50">
+                        <span className="text-2xl font-bold text-white tracking-wider font-outfit">PV</span>
                     </div>
                 </div>
 
                 {/* NAVIGATION LINKS */}
-                <nav className="space-y-4">
-                    <p className="px-5 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                        {mode === 'LIVESTOCK' ? 'Livestock Operations' : 'Agriculture Tracking'}
-                    </p>
-                    {activeMenu.map((item) => {
-                        const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
-                        return (
-                            <Link
-                                key={item.name}
-                                href={item.href}
-                                className={cn(
-                                    "flex items-center space-x-4 px-5 py-4 rounded-2xl transition-all duration-300 group",
-                                    isActive
-                                        ? "neu-pressed text-[#00bfa5] font-semibold"
-                                        : "text-gray-500 hover:neu-button hover:text-gray-700"
-                                )}
-                            >
-                                <item.icon className={cn("w-5 h-5", isActive ? "text-[#00bfa5]" : "text-gray-400 group-hover:text-gray-600")} />
-                                <span>{item.name}</span>
-                            </Link>
-                        )
-                    })}
+                <nav className="space-y-6">
+                    <div>
+                        <p className="px-4 text-[10px] font-bold text-slate-400/80 uppercase tracking-widest mb-3">
+                            {mode === 'LIVESTOCK' ? 'Livestock Operations' : 'Agriculture Tracking'}
+                        </p>
+                        <div className="space-y-1">
+                            {activeMenu.map((item) => {
+                                const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+                                return (
+                                    <Link
+                                        key={item.name}
+                                        href={item.href}
+                                        className={cn(
+                                            "flex items-center space-x-3 px-4 py-3 rounded-2xl transition-all duration-200 group relative",
+                                            isActive
+                                                ? "bg-blue-50 text-blue-700 font-semibold"
+                                                : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                                        )}
+                                    >
+                                        {isActive && <div className="absolute left-0 top-[20%] bottom-[20%] w-1 bg-blue-600 rounded-r-full" />}
+                                        <item.icon className={cn("w-5 h-5", isActive ? "text-blue-600" : "text-slate-400 group-hover:text-slate-600")} />
+                                        <span>{item.name}</span>
+                                    </Link>
+                                )
+                            })}
+                        </div>
+                    </div>
                 </nav>
             </div>
 
             {/* LOGOUT BUTTON */}
-            <div className="border-t border-gray-300/30 pt-6">
-                <button className="w-full flex items-center justify-center space-x-3 neu-button px-5 py-4 rounded-xl text-red-500 hover:text-red-600 font-medium">
+            <div className="border-t border-slate-100 pt-6 mt-4">
+                <button className="w-full flex items-center justify-center space-x-2 bg-red-50 hover:bg-red-100/80 text-red-600 transition-colors px-4 py-3.5 rounded-2xl font-semibold">
                     <LogOut className="w-5 h-5" />
                     <span>Logout</span>
                 </button>
