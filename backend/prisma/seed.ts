@@ -14,10 +14,27 @@ async function main() {
         { action: 'livestock.read', description: 'View livestock data' },
         { action: 'livestock.write', description: 'Create or update livestock data' },
         { action: 'livestock.delete', description: 'Delete livestock data' },
-        // Transactions
+        // Enclosures (Kandang)
+        { action: 'enclosure.read', description: 'View enclosure/pen data' },
+        { action: 'enclosure.write', description: 'Create or update enclosures' },
+        { action: 'enclosure.delete', description: 'Delete enclosures' },
+        // Transactions / Finance
         { action: 'transaction.read', description: 'View financial transactions' },
         { action: 'transaction.write', description: 'Create or update transactions' },
-        // Crops
+        // Billing / Invoice
+        { action: 'billing.read', description: 'View invoices and billing data' },
+        { action: 'billing.write', description: 'Create or update invoices' },
+        { action: 'billing.approve', description: 'Approve and finalize invoices' },
+        // Inventory
+        { action: 'inventory.read', description: 'View inventory items' },
+        { action: 'inventory.write', description: 'Create or update inventory items' },
+        // Medical Records
+        { action: 'medical.read', description: 'View medical/veterinary records' },
+        { action: 'medical.write', description: 'Create or update medical records' },
+        // Nutrition Calculator
+        { action: 'nutrition.read', description: 'Access nutrition calculator and feed data' },
+        { action: 'nutrition.write', description: 'Create feed formulations and manage feed ingredients' },
+        // Crops / Agriculture
         { action: 'crop.read', description: 'View crop phases' },
         { action: 'crop.write', description: 'Manage crop phases' },
         // AI
@@ -26,6 +43,7 @@ async function main() {
         { action: 'settings.manage', description: 'Manage tenant settings' },
         { action: 'media.upload', description: 'Upload media files' }
     ];
+
 
     for (const perm of permissions) {
         await prisma.permission.upsert({
@@ -63,10 +81,16 @@ async function main() {
         } else if (r.name === 'STAFF') {
             // Staff gets specific operational permissions
             const staffPerms = allPerms.filter((p: { action: string }) =>
-                p.action.startsWith('livestock.') && p.action !== 'livestock.delete' ||
-                p.action.startsWith('crop.') && p.action !== 'crop.delete' ||
+                (p.action.startsWith('livestock.') && p.action !== 'livestock.delete') ||
+                (p.action.startsWith('crop.') && p.action !== 'crop.delete') ||
                 p.action === 'dashboard.read' ||
-                p.action === 'media.upload'
+                p.action === 'media.upload' ||
+                p.action === 'medical.read' ||
+                p.action === 'inventory.read' ||
+                p.action === 'nutrition.read' ||
+                p.action === 'enclosure.read' ||
+                p.action === 'billing.read' ||
+                p.action === 'transaction.read'
             );
             for (const p of staffPerms) {
                 await prisma.rolePermission.upsert({

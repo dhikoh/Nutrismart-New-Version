@@ -19,7 +19,8 @@ import {
     Calculator,
     FileText,
     ActivitySquare,
-    Package
+    Package,
+    ShieldAlert
 } from 'lucide-react';
 
 const SHARED_MENU = [
@@ -27,6 +28,7 @@ const SHARED_MENU = [
     { name: 'Inventory Hub', icon: Package, href: '/app/inventory' },
     { name: 'Billing & Invoice', icon: FileText, href: '/app/billing' },
     { name: 'Finance', icon: Wallet, href: '/app/finance' },
+    { name: 'Audit Logs', icon: ShieldAlert, href: '/app/logs' },
     { name: 'Staff', icon: Users, href: '/app/staff' },
     { name: 'Settings', icon: Settings, href: '/app/settings' },
 ];

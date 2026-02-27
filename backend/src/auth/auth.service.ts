@@ -100,4 +100,26 @@ export class AuthService {
 
         return this.login(tokenRecord.user);
     }
+
+    async logout(refreshToken: string): Promise<void> {
+        if (!refreshToken) return;
+        await this.prisma.refreshToken.updateMany({
+            where: { token: refreshToken, isRevoked: false },
+            data: { isRevoked: true },
+        });
+        // Side-effect: clean up all hard-expired/revoked tokens to prevent DB bloat
+        await this.cleanExpiredTokens();
+    }
+
+    async cleanExpiredTokens(): Promise<number> {
+        const result = await this.prisma.refreshToken.deleteMany({
+            where: {
+                OR: [
+                    { isRevoked: true },
+                    { expiresAt: { lt: new Date() } },
+                ],
+            },
+        });
+        return result.count;
+    }
 }

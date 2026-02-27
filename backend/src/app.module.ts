@@ -21,6 +21,7 @@ import { NutritionCalculatorModule } from './nutrition-calculator/nutrition-calc
 import { InventoryModule } from './inventory/inventory.module';
 import { BillingModule } from './billing/billing.module';
 import { LandParcelsModule } from './land-parcels/land-parcels.module';
+import { LogsModule } from './common/logs.module';
 
 @Module({
   imports: [
@@ -46,7 +47,8 @@ import { LandParcelsModule } from './land-parcels/land-parcels.module';
     NutritionCalculatorModule,
     InventoryModule,
     BillingModule,
-    LandParcelsModule
+    LandParcelsModule,
+    LogsModule
   ],
   controllers: [AppController],
   providers: [
